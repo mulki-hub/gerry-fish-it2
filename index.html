@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerry Store V4.9 - Private Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #00050a; color: white; margin: 0; padding-bottom: 100px; overflow-x: hidden; }
+        .hidden { display: none; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; }
+        .gaming-btn { background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); color: black; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .gaming-btn:active { transform: scale(0.95); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+        .nav-item { flex: 1; text-align: center; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+        .nav-item.active { color: #22c55e; }
+        
+        /* Spin Wheel Style */
+        #wheel-container { position: relative; width: 220px; height: 220px; margin: 0 auto 20px; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #1a1a1a; transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#ef4444 0deg 324deg, #f59e0b 324deg 360deg); }
+        #pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 25px solid white; z-index: 20; }
+    </style>
+</head>
+<body>
+
+    <marquee>SISTEM TERUPDATE V4.9 | SPIN WHEEL & MINI GAMES AKTIF | ITEM TERBATAS JANGAN KETINGGALAN</marquee>
+
+    <div id="authBox" class="fixed inset-0 z-[200] bg-black flex items-center justify-center p-6 hidden">
+        <div class="w-full max-w-xs text-center">
+            <h2 class="text-3xl font-black text-green-500 mb-6 italic uppercase">Gerry Access</h2>
+            <input type="text" id="userInput" placeholder="NAMA AKUN" class="w-full bg-white/5 p-4 rounded-xl mb-3 border border-white/10 outline-none text-center font-bold uppercase text-white">
+            <input type="password" id="passInput" placeholder="PASSWORD" class="w-full bg-white/5 p-4 rounded-xl mb-6 border border-white/10 outline-none text-center text-white">
+            <button onclick="handleAuth()" class="w-full gaming-btn py-4 rounded-xl uppercase">Masuk</button>
+        </div>
+    </div>
+
+    <div id="page-home" class="p-5 view">
+        <div class="flex justify-between items-center mb-6">
+            <div><h1 class="text-xl font-black italic text-green-500">GERRY STORE</h1><p id="navName" class="text-[9px] font-bold text-gray-500 uppercase"></p></div>
+            <div class="bg-white/5 border border-white/10 px-3 py-2 rounded-xl"><p id="navPoints" class="text-[12px] text-yellow-500 font-black italic">⭐ 0 Coins</p></div>
+        </div>
+
+        <div id="megaAdminPanel" class="glass-card p-4 mb-6 border-2 border-green-500 hidden bg-green-500/5">
+            <p class="text-[10px] font-black text-green-500 uppercase mb-3 text-center">🛡️ Super Admin Injector</p>
+            <div class="flex gap-2">
+                <input type="number" id="adminAddVal" placeholder="Jumlah" class="flex-1 bg-black p-2 rounded text-xs border border-white/10">
+                <button onclick="adminAddCoin()" class="bg-green-500 text-black px-4 rounded font-black text-[9px]">INJECT</button>
+            </div>
+        </div>
+
+        <div class="glass-card p-4 mb-6 border-dashed border-green-500/50">
+            <div class="flex gap-2"><input type="text" id="giftCodeInput" placeholder="KODE REDEEM" class="flex-1 bg-black/40 border border-white/10 p-2 rounded-lg text-xs font-bold uppercase"><button onclick="redeemGiftCode()" class="gaming-btn px-4 text-[9px]">CLAIM</button></div>
+        </div>
+
+        <div id="topUsers" class="mb-6 space-y-1"></div>
+        <div id="grid-products" class="grid grid-cols-2 gap-3"></div>
+    </div>
+
+    <div id="page-game" class="p-5 view hidden space-y-5">
+        <h2 class="text-xl font-black text-green-500 italic text-center uppercase">Mini Games</h2>
+        <div class="glass-card p-4 text-center">
+            <p class="text-[10px] font-bold text-blue-400">GAME 1: TEBAK 1-10 (RATE 10%)</p>
+            <p class="text-[8px] mb-3">Biaya: 20 | Hadiah: 30 Koin</p>
+            <input type="number" id="guessInput" min="1" max="10" placeholder="1-10" class="w-full bg-black border border-white/10 p-2 rounded mb-2 text-center text-xs">
+            <button onclick="playGame1()" class="w-full gaming-btn py-2 text-[10px]">TEBAK</button>
+        </div>
+        <div class="glass-card p-4 text-center">
+            <p class="text-[10px] font-bold text-yellow-400">GAME 2: COIN FLIP (RATE 30%)</p>
+            <p class="text-[8px] mb-3">Biaya: 50 | Hadiah: 60 Koin</p>
+            <div class="flex gap-2"><button onclick="playGame2('H')" class="flex-1 bg-white/5 py-2 rounded text-[10px] font-bold">HEAD</button><button onclick="playGame2('T')" class="flex-1 bg-white/5 py-2 rounded text-[10px] font-bold">TAIL</button></div>
+        </div>
+        <div class="glass-card p-4 text-center">
+            <p class="text-[10px] font-bold text-purple-400">GAME 3: MYSTERY BOX</p>
+            <p class="text-[8px] mb-3">Biaya: 100 | Hadiah: 0 - 110 Koin</p>
+            <button onclick="playGame3()" class="w-full py-3 bg-purple-500/20 border border-purple-500/50 rounded-xl font-black text-[10px]">BUKA KOTAK</button>
+        </div>
+    </div>
+
+    <div id="page-redeem" class="p-5 view hidden text-center">
+        <h2 class="text-xl font-black text-green-500 mb-4 italic uppercase">Lucky Wheel</h2>
+        <div class="glass-card p-5 mb-8">
+            <div id="wheel-container">
+                <div id="pointer"></div>
+                <div id="wheel"></div>
+            </div>
+            <button onclick="spin()" class="w-full gaming-btn py-4 rounded-xl text-xs uppercase">Spin (50 Koin)</button>
+        </div>
+        <h3 class="text-left text-xs font-black text-green-500 mb-4 uppercase italic">Tukar Koin (Klik Item)</h3>
+        <div id="grid-rewards" class="grid grid-cols-2 gap-3"></div>
+    </div>
+
+    <div id="redeemDetailPage" class="fixed inset-0 bg-black z-[160] p-6 hidden overflow-y-auto">
+        <button onclick="closeRedeemDetail()" class="mb-8 text-green-500 font-bold text-xs uppercase">← Kembali</button>
+        <div id="redeemDetailContent"></div>
+    </div>
+
+    <div id="successPop" class="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-6 hidden">
+        <div class="glass-card p-8 text-center border-green-500 border-2 w-full">
+            <div class="text-6xl mb-4">✅</div>
+            <h2 id="successTitle" class="text-xl font-black text-green-500 uppercase mb-2"></h2>
+            <p class="text-[10px] text-gray-400 mb-6">Screenshot layar ini dan kirim ke Admin.</p>
+            <button id="waSendBtn" class="w-full gaming-btn py-4 rounded-xl uppercase text-xs mb-3">Kirim ke Admin</button>
+            <button onclick="location.reload()" class="text-gray-500 text-[10px] font-bold">TUTUP</button>
+        </div>
+    </div>
+
+    <div id="page-news" class="p-5 view hidden"><div id="stockList" class="space-y-2 text-[8px] font-bold glass-card p-4 uppercase"></div></div>
+    <div id="page-profile" class="p-5 view hidden text-center">
+        <div id="profInitial" class="w-20 h-20 bg-green-500 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl font-black text-black">?</div>
+        <h3 id="profName" class="text-xl font-black uppercase mb-8">User</h3>
+        <button onclick="logout()" class="w-full bg-red-500/10 text-red-500 py-4 rounded-2xl font-black text-[10px] uppercase border border-red-500/20">Logout</button>
+    </div>
+
+    <div id="payPage" class="fixed inset-0 bg-black z-[150] p-6 hidden overflow-y-auto">
+        <button onclick="closePay()" class="mb-8 text-green-500 font-bold text-xs uppercase">← Back</button>
+        <div id="payContent"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showTab('home', this)">🏠<br>Home</div>
+        <div class="nav-item" onclick="showTab('news', this)">📢<br>News</div>
+        <div class="nav-item" onclick="showTab('game', this)">🎮<br>Game</div>
+        <div class="nav-item" onclick="showTab('redeem', this)">🎁<br>Redeem</div>
+        <div class="nav-item" onclick="showTab('profile', this)">👤<br>Profile</div>
+    </div>
+
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-500 text-black px-6 py-2 rounded-full font-black text-[10px] z-[500] hidden"></div>
+
+    <script>
+        const products = [
+            { id: 1, name: "Robot Kraken", price: 5000, img: "https://i.supaimg.com/6b14016b-d332-4287-94d0-d675cf1060f8.jpg", stock: "READY" },
+            { id: 2, name: "Akun Astral", price: 5000, img: "https://i.supaimg.com/16a6260b-a39f-4194-b23d-28e2d6910adc.jpg", stock: "READY" },
+            { id: 3, name: "Ghosfin Polos", price: 20000, img: "https://placehold.co/400?text=sold", stock: "SOLD" },
+            { id: 4, name: "Elshark Gran", price: 15000, img: "https://placehold.co/400?text=sold", stock: "SOLD" },
+            { id: 5, name: "Akun Ares", price: 8000, img: "https://placehold.co/400?text=sold", stock: "SOLD" },
+            { id: 6, name: "Akun Angler Rod", price: 10000, img: "https://placehold.co/400?text=sold", stock: "SOLD" },
+            { id: 7, name: "Megalodon", price: 25000, img: "https://placehold.co/400?text=sold", stock: "SOLD" },
+            { id: 8, name: "secret tumbal", price: 3000, img: "https://i.supaimg.com/4a759632-fd8d-4f4d-a911-8654084e240a.jpg", stock: "READY" }
+        ];
+        const rewards = [
+            { id: 101, name: "Secret Tumbal", p: 5000, img: "https://placehold.co/400?text=Secret", desc: "Akun tumbal rahasia level max." },
+            { id: 102, name: "Akun Polosan", p: 10000, img: "https://placehold.co/400?text=Akun", desc: "Akun baru polosan." },
+            { id: 103, name: "akun ghospin", p: 50000, img: "https://placehold.co/400?text=Skin", desc: "Skin kategori basic acak." },
+            { id: 104, name: "3 gran maja", p: 100000, img: "https://placehold.co/400?text=Box", desc: "Box misteri dengan isi random." }
+        ];
+
+        let currentUser = localStorage.getItem('active_user');
+
+        window.onload = () => { if(!currentUser) document.getElementById('authBox').classList.remove('hidden'); else init(); };
+
+        function init() {
+            document.getElementById('navName').innerText = currentUser;
+            document.getElementById('profName').innerText = currentUser;
+            document.getElementById('profInitial').innerText = currentUser[0];
+            if(currentUser === "ADMIN") document.getElementById('megaAdminPanel').classList.remove('hidden');
+            renderProducts(); renderRewards(); renderStocks(); updateUI(); updateLeaderboard();
+        }
+
+        // SPIN WHEEL 90/10
+        function spin() {
+            if(deduct(50)){
+                const r = Math.random()*100;
+                let d = r < 90 ? 2160+(Math.random()*320) : 2160+342;
+                document.getElementById('wheel').style.transform = `rotate(${d}deg)`;
+                setTimeout(() => {
+                    if(r >= 90) { 
+                        document.getElementById('successTitle').innerText = "DAPET SECRET TUMBAL!";
+                        document.getElementById('successPop').classList.remove('hidden');
+                        document.getElementById('waSendBtn').onclick = () => window.open(`https://wa.me/6283844529906?text=JACKPOT%20SPIN!`);
+                    } else showToast("ZONK! COBA LAGI");
+                }, 5000);
+            }
+        }
+
+        // GAMES HARD MODE
+        function playGame1() {
+            const guess = parseInt(document.getElementById('guessInput').value);
+            if(deduct(20)){
+                const win = Math.floor(Math.random()*10)+1;
+                if(guess === win) { addPt(30); showToast("MENANG! +30"); } else showToast("SALAH! ANGKA: "+win);
+            }
+        }
+        function playGame2(c) {
+            if(deduct(50)){
+                const r = Math.random();
+                if(r > 0.7) { addPt(60); showToast("MENANG! +60"); } else showToast("KALAH!");
+            }
+        }
+        function playGame3() {
+            if(deduct(100)){
+                const prize = Math.floor(Math.random()*111); addPt(prize); showToast("ISI: "+prize);
+            }
+        }
+
+        // REDEEM FLOW
+        function renderRewards() {
+            document.getElementById('grid-rewards').innerHTML = rewards.map(r => `
+                <div onclick="openRedeemDetail(${r.id})" class="glass-card p-3 text-center transition active:scale-95">
+                    <img src="${r.img}" class="w-full rounded-xl mb-2 aspect-suare object-cover"><p class="text-[8px] font-black uppercase mb-1">${r.name}</p><p class="text-yellow-500 font-bold text-[9px]">${r.p} Koin</p>
+                </div>`).join('');
+        }
+        function openRedeemDetail(id) {
+            const r = rewards.find(x => x.id === id);
+            document.getElementById('redeemDetailPage').classList.remove('hidden');
+            document.getElementById('redeemDetailContent').innerHTML = `
+                <img src="${r.img}" class="w-full rounded-3xl mb-6 shadow-2xl">
+                <h2 class="text-2xl font-black italic uppercase">${r.name}</h2>
+                <p class="text-yellow-500 font-black text-xl mb-4">${r.p} COINS</p>
+                <p class="text-[10px] text-gray-500 italic mb-8 uppercase">Deskripsi: ${r.desc}</p>
+                <button onclick="processRedeem(${r.id})" class="w-full gaming-btn py-5 rounded-2xl uppercase text-xs">Redeem Sekarang</button>`;
+        }
+        function processRedeem(id) {
+            const r = rewards.find(x => x.id === id);
+            if(deduct(r.p)){
+                document.getElementById('redeemDetailPage').classList.add('hidden');
+                document.getElementById('successTitle').innerText = "REDEEM: " + r.name;
+                document.getElementById('successPop').classList.remove('hidden');
+                document.getElementById('waSendBtn').onclick = () => window.open(`https://wa.me/6283844529906?text=REDEEM%20${r.name}`);
+            }
+        }
+
+        // CORE LOGIC
+        function deduct(v){ let p=parseInt(localStorage.getItem('pt_'+currentUser)||0); if(p<v){ showToast("KOIN KURANG!"); return false; } addPt(-v); return true; }
+        function addPt(v) { let p=parseInt(localStorage.getItem('pt_'+currentUser)||0); localStorage.setItem('pt_'+currentUser, p+v); updateUI(); }
+        function updateUI() { document.getElementById('navPoints').innerText=`⭐ ${localStorage.getItem('pt_'+currentUser)||0} Coins`; }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),2000); }
+        function showTab(t,e) { document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden')); document.getElementById('page-'+t).classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); e.classList.add('active'); }
+        function handleAuth() { const u=document.getElementById('userInput').value.trim().toUpperCase(), p=document.getElementById('passInput').value.trim(); if(!u||!p) return; if(!localStorage.getItem('pw_'+u)){ localStorage.setItem('pw_'+u,p); localStorage.setItem('pt_'+u,0); showToast("DAFTAR BERHASIL!"); } else if(localStorage.getItem('pw_'+u)===p){ localStorage.setItem('active_user',u); location.reload(); } else showToast("PASSWORD SALAH!"); }
+        function adminAddCoin() { const v=parseInt(document.getElementById('adminAddVal').value); addPt(v); showToast("COIN INJECTED!"); }
+        function closePay() { document.getElementById('payPage').classList.add('hidden'); }
+        function logout() { localStorage.removeItem('active_user'); location.reload(); }
+        function closeRedeemDetail() { document.getElementById('redeemDetailPage').classList.add('hidden'); }
+        function renderProducts() { document.getElementById('grid-products').innerHTML = products.map(p => `<div onclick="openDetail(${p.id})" class="glass-card p-3 text-center transition"><img src="${p.img}" class="w-full rounded-xl mb-2 aspect-square object-cover"><p class="text-[8px] font-black uppercase mb-1">${p.name}</p><p class="text-green-500 font-black text-[10px]">Rp ${p.price.toLocaleString()}</p></div>`).join(''); }
+        function openDetail(id) { 
+            const p=products.find(x=>x.id===id); document.getElementById('payPage').classList.remove('hidden'); 
+            document.getElementById('payContent').innerHTML=`<img src="${p.img}" class="w-full rounded-2xl mb-6 shadow-2xl"><h2 class="text-2xl font-black uppercase italic">${p.name}</h2><div class="glass-card p-6 mt-4 space-y-4"><input type="text" id="rbxNick" placeholder="NICKNAME" class="w-full bg-black p-4 rounded-xl border border-white/10 text-xs font-bold uppercase"><input type="number" id="buyQty" value="1" min="1" class="w-full bg-black p-4 rounded-xl border border-white/10 text-center font-bold text-xs"><button onclick="showQR(${p.id})" class="w-full gaming-btn py-4 rounded-xl uppercase">Check Out</button></div>`; 
+        }
+        function showQR(id) {
+            const p = products.find(x => x.id === id); const nick = document.getElementById('rbxNick').value; const qty = document.getElementById('buyQty').value; const total = p.price * qty;
+            document.getElementById('payContent').innerHTML = `<div class="text-center"><h2 class="text-3xl font-black text-green-500 mb-6 italic">Rp ${total.toLocaleString()}</h2><div class="bg-white p-4 rounded-3xl inline-block mb-6"><img src="" class="w-64 h-64"></div><div class="glass-card p-4 text-[9px] text-left mb-8 italic text-gray-400">1. Scan QRIS.<br>2. Masukkan Rp ${total.toLocaleString()}.<br>3. Kirim bukti ke WA.</div><button onclick="confirmOrder('${p.name}', ${total}, '${nick}', ${qty})" class="w-full gaming-btn py-5 rounded-2xl uppercase">Kirim Bukti Pembayaran</button></div>`;
+        }
+        function confirmOrder(i,t,n,q) { window.open(`https://wa.me/6283844529906?text=ORDER:${i}%20QTY:${q}%20NICK:${n}`); closePay(); }
+        function renderStocks() { document.getElementById('stockList').innerHTML=products.map(p=>`<div class="flex justify-between"><span>${p.name}</span><span class="text-green-500">${p.stock}</span></div>`).join(''); }
+        function updateLeaderboard() { let u=[]; for(let i=0; i<localStorage.length; i++){ let k=localStorage.key(i); if(k.startsWith('pt_')) u.push({n:k.replace('pt_',''), p:parseInt(localStorage.getItem(k))}); } u.sort((a,b)=>b.p-a.p); document.getElementById('topUsers').innerHTML=u.slice(0,3).map((x,i)=>`<div class="flex justify-between text-[8px] font-bold p-2 glass-card italic"><span>#${i+1} ${x.n}</span><span class="text-yellow-500">${x.p} KOINS</span></div>`).join(''); }
+        function redeemGiftCode() { const c=document.getElementById('giftCodeInput').value.trim().toUpperCase(); if(localStorage.getItem('used_'+c+currentUser)) return showToast("SUDAH!"); if(c==='GERRY100'){ addPt(100); localStorage.setItem('used_'+c+currentUser,true); showToast("+100 KOIN!"); } else showToast("SALAH!"); }
+    </script>
+</body>
+</html>
